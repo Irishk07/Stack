@@ -5,8 +5,10 @@
 
 #ifdef DEBUG
 #define ON_DEBUG(...) __VA_ARGS__
+#define STACK_CREATE(stack, line, file_name, function_name) StackCtor(&stack, #stack, line, file_name, function_name)
 #else
 #define ON_DEBUG(...)
+#define STACK_CREATE(stack) StackCtor(&stack)
 #endif
 
 
@@ -21,16 +23,17 @@ const int max_capacity   = 1e9;
 const int poison = 666;
 
 struct VarInfo {
-    int val_line;
-    const char* val_file_name;
-    const char* val_function_name;
+    const char* var_name;
+    int var_line;
+    const char* var_file_name;
+    const char* var_function_name;
 };
 
 struct stack_t {
     type_t* data = NULL;
     ssize_t size = 0;
     ssize_t capacity = 0;
-    VarInfo now_varinfo;
+    ON_DEBUG(VarInfo now_varinfo;)
 };
 
 enum status {

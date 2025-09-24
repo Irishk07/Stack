@@ -4,7 +4,7 @@
 #include "stack.h"
 
 
-type_error_t StackCtor(stack_t* stack, int line, const char* file_name, const char* function_name);
+type_error_t StackCtor(stack_t* stack ON_DEBUG(, const char* stack_name, int line, const char* file_name, const char* function_name));
 
 type_error_t StackDtor(stack_t* stack);
 

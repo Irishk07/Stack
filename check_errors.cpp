@@ -37,9 +37,10 @@ void StackPrintError(type_error_t code_error) {
 }
 
 void StackDump(stack_t* stack, int line, const char* file_name, const char* function_name, type_error_t code_error) {
-    fprintf(stderr, "%s <%s>[%p] \"%s\" %s() %s:%d {\n", 
-           "stack_t", type_name, &stack, "stack", stack->now_varinfo.val_function_name, stack->now_varinfo.val_file_name, stack->now_varinfo.val_line);
-    fprintf(stderr, "    called at %s() %s:%d:\n", function_name, file_name, line);
+    fprintf(stderr, "%s <%s>[%p] ", 
+           "stack_t", type_name, &stack);
+    ON_DEBUG(fprintf(stderr, "\"%s\" %s() %s:%d {",  stack->now_varinfo.var_name, stack->now_varinfo.var_function_name, stack->now_varinfo.var_file_name, stack->now_varinfo.var_line);)
+    fprintf(stderr, "\n    called at %s() %s:%d:\n", function_name, file_name, line);
     StackPrintError(code_error);
     fprintf(stderr, "    %s = %ld\n", "capacity", stack->capacity);
     fprintf(stderr, "    %s = %ld\n", "size", stack->size);

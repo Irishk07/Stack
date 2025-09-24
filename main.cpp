@@ -9,7 +9,11 @@ int main() {
     stack_t stack = {};
     type_t delete_value = 0;
 
-    StackCtor(&stack, __LINE__, __FILE__, __func__);
+    #ifdef DEBUG
+        STACK_CREATE(stack, __LINE__, __FILE__, __func__);
+    #else
+        STACK_CREATE(stack);
+    #endif
 
     StackPush(&stack, 5);
     StackPush(&stack, 9);

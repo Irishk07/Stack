@@ -8,9 +8,12 @@
 
 
 type_error_t StackPush(stack_t* stack, type_t new_value) {
-    type_error_t code_error = StackVerify(stack);
+    type_error_t code_error = SUCCESS;
+
+    ON_DEBUG(code_error = StackVerify(stack);)
+
     if (code_error != SUCCESS) {
-        StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
         return code_error;
     }
@@ -21,7 +24,7 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
         if (temp_point == NULL) {
             code_error = code_error | RECALLOC_ERROR;
 
-            StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+            ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
             free(temp_point);
             
@@ -37,9 +40,10 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
     *(stack->data + stack->size) = new_value;
     stack->size = stack->size + 1;
 
-    code_error = StackVerify(stack);
+    ON_DEBUG(code_error = StackVerify(stack);)
+
     if (code_error != SUCCESS) {
-        StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
         return code_error;
     }
@@ -48,9 +52,12 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
 }
 
 type_error_t StackPop(stack_t* stack, type_t* delete_value) {
-    type_error_t code_error = StackVerify(stack);
+    type_error_t code_error = SUCCESS;
+
+    ON_DEBUG(code_error = StackVerify(stack);)
+
     if (code_error != SUCCESS) {
-        StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
         return code_error;
     }
@@ -58,7 +65,7 @@ type_error_t StackPop(stack_t* stack, type_t* delete_value) {
     if (stack->size == 0) {
         code_error = code_error | POP_EMPTY_STACK;
 
-        StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
         return code_error;
     }
@@ -74,7 +81,7 @@ type_error_t StackPop(stack_t* stack, type_t* delete_value) {
         if (stack->data == NULL) {
             code_error = code_error | RECALLOC_ERROR;
 
-            StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+            ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
             return code_error;
         }
@@ -82,9 +89,10 @@ type_error_t StackPop(stack_t* stack, type_t* delete_value) {
         stack->capacity = stack->capacity / 2;
     }
 
-    code_error = StackVerify(stack);
+    ON_DEBUG(code_error = StackVerify(stack);)
+
     if (code_error != SUCCESS) {
-        StackDump(stack, __LINE__, __FILE__, __func__, code_error);
+        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
 
         return code_error;
     }
