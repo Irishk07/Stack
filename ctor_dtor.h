@@ -1,10 +1,11 @@
 #ifndef CTOR_DTOR_H_
 #define CTOR_DTOR_H
 
-#include "main.h"
+#include "stack.h"
 
-long StackCtor(stack_t* stack);
 
-void StackDtor(stack_t* stack);
+type_error_t StackCtor(stack_t* stack, int line, const char* file_name, const char* function_name);
+
+type_error_t StackDtor(stack_t* stack);
 
 #endif //CTOR_DTOR_H
