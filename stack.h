@@ -5,10 +5,10 @@
 
 #ifdef DEBUG
 #define ON_DEBUG(...) __VA_ARGS__
-#define STACK_CREATE(stack, line, file_name, function_name) StackCtor(&stack, #stack, line, file_name, function_name)
+#define STACK_CREATE(stack, start_capacity, line, file_name, function_name) StackCtor(&stack, start_capacity, #stack, line, file_name, function_name)
 #else
 #define ON_DEBUG(...)
-#define STACK_CREATE(stack) StackCtor(&stack)
+#define STACK_CREATE(stack, start_capacity) StackCtor(&stack, start_capacity)
 #endif
 
 
@@ -17,10 +17,10 @@ const char * const type_name = "int";
 
 typedef long type_error_t;
 
-const int start_capacity = 32; //it mustn't be <= 0
-const int max_capacity   = 1e9;
+const ssize_t my_start_capacity = 32; //it mustn't be <= 0
+const ssize_t max_capacity   = 1e9;
 
-const int poison = 666;
+const type_t poison = 666;
 
 struct VarInfo {
     const char* var_name;

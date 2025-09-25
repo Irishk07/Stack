@@ -10,9 +10,9 @@ int main() {
     type_t delete_value = 0;
 
     #ifdef DEBUG
-        STACK_CREATE(stack, __LINE__, __FILE__, __func__);
+        STACK_CREATE(stack, my_start_capacity, __LINE__, __FILE__, __func__);
     #else
-        STACK_CREATE(stack);
+        STACK_CREATE(stack, my_start_capacity);
     #endif
 
     StackPush(&stack, 5);
