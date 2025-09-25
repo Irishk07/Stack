@@ -8,7 +8,8 @@
 #include "stack.h"
 
 
-type_error_t StackCtor(stack_t* stack, type_t start_capacity ON_DEBUG(, const char* stack_name, int line, const char* file_name, const char* function_name)) {
+type_error_t StackCtor(stack_t* stack, type_t start_capacity 
+                       ON_DEBUG(, const char* stack_name, int line, const char* file_name, const char* function_name)) {
     assert(stack);
 
     type_error_t code_error = SUCCESS;

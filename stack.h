@@ -18,7 +18,7 @@ const char * const type_name = "int";
 typedef long type_error_t;
 
 const ssize_t my_start_capacity = 32; //it mustn't be <= 0
-const ssize_t max_capacity   = 1e9;
+const ssize_t max_capacity      = 1e9;
 
 const type_t poison = 666;
 
