@@ -6,15 +6,15 @@
 type_error_t StackVerify(stack_t* stack) {
     type_error_t code_error = SUCCESS;
 
-    if (stack == NULL)                                            code_error = code_error | NULL_POINTER_ON_STACK;
-    if (stack->data == NULL && stack->size != 0)                  code_error = code_error | NULL_POINTER_ON_DATA; 
-    if (stack->capacity > max_capacity)                           code_error = code_error | TOO_BIG_CAPACITY;
-    if (stack->capacity < 0)                                      code_error = code_error | CAPACITY_IS_NEGATIVE;
-    if (stack->size < 0)                                          code_error = code_error | SIZE_IS_NEGATIVE;
-    if (stack->size > stack->capacity)                            code_error = code_error | SIZE_BIGGER_THAN_CAPACITY;
+    if (stack == NULL)                                             code_error = code_error | NULL_POINTER_ON_STACK;
+    if (stack->data == NULL && stack->size != 0)                   code_error = code_error | NULL_POINTER_ON_DATA; 
+    if (stack->capacity > max_capacity)                            code_error = code_error | TOO_BIG_CAPACITY;
+    if (stack->capacity < 0)                                       code_error = code_error | CAPACITY_IS_NEGATIVE;
+    if (stack->size < 0)                                           code_error = code_error | SIZE_IS_NEGATIVE;
+    if (stack->size > stack->capacity)                             code_error = code_error | SIZE_BIGGER_THAN_CAPACITY;
 
     for (ssize_t i = 0; i < stack->capacity; ++i) {
-        if (i < stack->size && *(stack->data + i) == poison)     code_error = code_error | STACK_DATA_IS_POISON;
+        if (i < stack->size && *(stack->data + i) == poison)       code_error = code_error | STACK_DATA_IS_POISON;
 
         else if (i >= stack->size && *(stack->data + i) != poison) code_error = code_error | CORRUPTED_FREE_PART_STACK;
     }
