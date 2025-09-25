@@ -13,7 +13,7 @@ void init_calloc(type_t* ptr, size_t size) {
 }
 
 void* my_recalloc(void* ptr, size_t new_size, size_t old_size) {
-    type_t* point = (type_t*)realloc(ptr, new_size);
+    char* point = (char*)realloc(ptr, new_size);
 
     if (new_size <= old_size) {
         return point;
@@ -23,11 +23,13 @@ void* my_recalloc(void* ptr, size_t new_size, size_t old_size) {
         return NULL;
     }
 
-    return memset(point + old_size, 0, new_size - old_size);
+    memset(point + old_size, 0, new_size - old_size);
+
+    return point;
 }
 
 void init_recalloc(type_t* ptr, size_t size) {
     for (size_t i = 0; i < size; ++i) {
-        *ptr++ = poison;
+        *(ptr++) = poison;
     }
 }
