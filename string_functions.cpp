@@ -30,6 +30,6 @@ void* my_recalloc(void* ptr, size_t new_size, size_t old_size) {
 
 void init_recalloc(type_t* ptr, size_t size) {
     for (size_t i = 0; i < size; ++i) {
-        *(ptr++) = poison;
+        *(ptr + i) = poison;
     }
 }

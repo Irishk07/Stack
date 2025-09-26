@@ -13,11 +13,14 @@ type_error_t StackVerify(stack_t* stack) {
     if (stack->size < 0)                                           code_error = code_error | SIZE_IS_NEGATIVE;
     if (stack->size > stack->capacity)                             code_error = code_error | SIZE_BIGGER_THAN_CAPACITY;
 
-    for (ssize_t i = 0; i < stack->capacity; ++i) {
-        if (i < stack->size && *(stack->data + i) == poison)       code_error = code_error | STACK_DATA_IS_POISON;
+    for (ssize_t i = 1; i <= stack->capacity; ++i) {
+        if (i <= stack->size && *(stack->data + i) == poison)      code_error = code_error | STACK_DATA_IS_POISON;
 
-        else if (i >= stack->size && *(stack->data + i) != poison) code_error = code_error | CORRUPTED_FREE_PART_STACK;
+        else if (i > stack->size && *(stack->data + i) != poison)  code_error = code_error | CORRUPTED_FREE_PART_STACK;
     }
+
+    if ((*(stack->data) != canary) || 
+       (*(stack->data + stack->capacity + 1) != canary))           code_error = code_error | CORRUPTED_CANARY;
 
     return code_error;
 }
@@ -34,6 +37,7 @@ void StackPrintError(type_error_t code_error) {
     if (code_error & TOO_BIG_CAPACITY)          fprintf(stderr, "Error is: capacity is too big\n");
     if (code_error & STACK_DATA_IS_POISON)      fprintf(stderr, "Error is: stack data is poison\n");
     if (code_error & CORRUPTED_FREE_PART_STACK) fprintf(stderr, "Error is: corrupted free part of stack\n");
+    if (code_error & CORRUPTED_CANARY)          fprintf(stderr, "Error is: canary is corrupted\n");
 }
 
 void StackDump(stack_t* stack, int line, const char* file_name, const char* function_name, type_error_t code_error) {
@@ -45,11 +49,15 @@ void StackDump(stack_t* stack, int line, const char* file_name, const char* func
     fprintf(stderr, "    %s = %ld\n", "capacity", stack->capacity);
     fprintf(stderr, "    %s = %ld\n", "size", stack->size);
     fprintf(stderr, "    %s[%ld] = [%p] {\n", "data", stack->capacity, &(stack->data));
+
+    ON_DEBUG(fprintf(stderr, "    +[%d] = %d (%s)\n", 0, *(stack->data), "CANARY"));
     
-    for (int i = 0; i < stack->capacity; ++i) {
-        if (i >= stack->size) fprintf(stderr, "     [%d] = %d (%s)\n", i, *(stack->data + i), "POISON");
+    for (int i = 0 ON_DEBUG(+ 1); i < stack->capacity ON_DEBUG(+ 1); ++i) {
+        if (i > stack->size) fprintf(stderr, "     [%d] = %d (%s)\n", i, *(stack->data + i), "POISON");
         else                 fprintf(stderr, "    *[%d] = %d\n", i, *(stack->data + i));
     }
+
+    ON_DEBUG(fprintf(stderr, "    +[%ld] = %d (%s)\n", stack->capacity + 1, *(stack->data + stack->capacity + 1), "CANARY"));
 
     printf("   }\n}\n\n");
 }

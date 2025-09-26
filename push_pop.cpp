@@ -20,7 +20,7 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
     }
 
     if (stack->size == stack->capacity) {
-        type_t* temp_point = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity * 2) * sizeof(type_t), (size_t)stack->capacity * sizeof(type_t));
+        type_t* temp_point = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity * 2 + 2) * sizeof(type_t), (size_t)(stack->capacity + 2) * sizeof(type_t));
 
         if (temp_point == NULL) {
             code_error = code_error | RECALLOC_ERROR;
@@ -37,10 +37,12 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
 
         ON_DEBUG(fprintf(stderr, "I'm recalloc up, I do it %ld %ld\n", stack->size, stack->capacity);)
 
-        init_recalloc(stack->data + stack->size, (size_t)(stack->capacity - stack->size));
+        init_recalloc(stack->data + stack->size + 1, (size_t)(stack->capacity - stack->size));
+
+        *(stack->data + stack->capacity + 1) = canary;
     }
 
-    *(stack->data + stack->size) = new_value;
+    *(stack->data + stack->size + 1) = new_value;
     stack->size = stack->size + 1;
 
     ON_DEBUG(code_error = StackVerify(stack);)
@@ -75,12 +77,12 @@ type_error_t StackPop(stack_t* stack, type_t* delete_value) {
 
     stack->size--;
 
-    *delete_value = *(stack->data + stack->size);
+    *delete_value = *(stack->data + stack->size + 1);
 
-    *(stack->data + stack->size) = poison;
+    *(stack->data + stack->size + 1) = poison;
 
     if (stack->size * 4 < stack->capacity) {
-        stack->data = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity / 2) * sizeof(type_t), (size_t)stack->capacity * sizeof(type_t));
+        stack->data = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity / 2 + 2) * sizeof(type_t), (size_t)(stack->capacity + 2) * sizeof(type_t));
 
         if (stack->data == NULL) {
             code_error = code_error | RECALLOC_ERROR;
@@ -91,6 +93,8 @@ type_error_t StackPop(stack_t* stack, type_t* delete_value) {
         }
 
         stack->capacity = stack->capacity / 2;
+
+        *(stack->data + stack->capacity + 1) = canary;
 
         ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %ld %ld\n", stack->size, stack->capacity);)
     }

@@ -24,7 +24,7 @@ type_error_t StackCtor(stack_t* stack, type_t start_capacity
     stack->now_varinfo.var_function_name = function_name;
     )
 
-    stack->data = (type_t*)calloc((size_t)stack->capacity, sizeof(type_t));
+    stack->data = (type_t*)calloc((size_t)stack->capacity + 2, sizeof(type_t));
 
     if (stack->data == NULL) {
         code_error = code_error | CALLOC_ERROR;
@@ -32,7 +32,10 @@ type_error_t StackCtor(stack_t* stack, type_t start_capacity
         ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
     }
 
-    init_calloc(stack->data, (size_t)stack->capacity);
+    init_calloc(stack->data + 1, (size_t)stack->capacity);
+
+    *(stack->data) = canary;
+    *(stack->data + stack->capacity + 1) = canary;
 
     ON_DEBUG(code_error = code_error | StackVerify(stack);)
 
