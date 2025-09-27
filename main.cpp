@@ -1,20 +1,15 @@
+#include "check_errors.h"
+#include "debug.h"
+#include "push_pop.h"
 #include "stack.h"
 
-#include "check_errors.h"
-#include "ctor_dtor.h"
-#include "push_pop.h"
 
 int main() {
 
     stack_t stack = {};
     type_t delete_value = 0;
 
-    #ifdef DEBUG
-        STACK_CREATE(stack, my_start_capacity, __LINE__, __FILE__, __func__);
-    #else
-        STACK_CREATE(stack, my_start_capacity);
-    #endif
-
+    STACK_CREATE(stack, my_start_capacity);
 
     // for (type_t i = 0; i < 300; ++i) {
     //     StackPush(&stack, i);
@@ -32,9 +27,8 @@ int main() {
     //     StackPush(&stack, i);
     //     StackPop(&stack, &delete_value);
     // }
-
     
-    StackDump(&stack, __LINE__, __FILE__, __func__, 0);
+    ON_DEBUG(StackDump(&stack, 0, DUMP_VAR_INFO);)
 
     StackDtor(&stack);
 

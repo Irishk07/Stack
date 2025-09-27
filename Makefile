@@ -12,7 +12,7 @@ CPPFLAGS := -DDEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-lo
 -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,$\
 null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-CPPSRC := main.cpp string_functions.cpp check_errors.cpp ctor_dtor.cpp push_pop.cpp
+CPPSRC := main.cpp canary.cpp check_errors.cpp push_pop.cpp stack.cpp string_functions.cpp
 
 CPPOBJ := $(CPPSRC:%.cpp=build/%.o)
 

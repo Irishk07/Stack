@@ -3,109 +3,105 @@
 
 #include "push_pop.h"
 
+#include "canary.h"
 #include "check_errors.h"
 #include "stack.h"
 #include "string_functions.h"
+#include "variable_information.h"
 
 
 type_error_t StackPush(stack_t* stack, type_t new_value) {
+    // TODO: asserts?
     type_error_t code_error = SUCCESS;
 
-    ON_DEBUG(code_error = StackVerify(stack);)
-
-    if (code_error != SUCCESS) {
-        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-        return code_error;
-    }
+    PROPAGATE_ERROR(StackVerify(stack));
 
     if (stack->size == stack->capacity) {
-        type_t* temp_point = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity * 2 + 2) * sizeof(type_t), (size_t)(stack->capacity + 2) * sizeof(type_t));
+        ssize_t temp_capacity = stack->capacity;
+        stack->capacity *= realloc_coeff;
 
-        if (temp_point == NULL) {
-            code_error = code_error | RECALLOC_ERROR;
+        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, cnt_canaries) * sizeof(type_t), 
+                                                              RealSizeStack(temp_capacity, cnt_canaries) * sizeof(type_t));
+        // TODO: stop hungarian notation!!!! it kills
 
-            ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-            free(temp_point);
-            
-            return code_error;
+        if (temp_data == NULL) {
+            PROPAGATE_ERROR(NOT_ENOUGH_MEMORY, free(temp_data););
         }
 
-        stack->data = temp_point;
-        stack->capacity = stack->capacity * 2;
+        stack->data = temp_data;
 
         ON_DEBUG(fprintf(stderr, "I'm recalloc up, I do it %ld %ld\n", stack->size, stack->capacity);)
 
-        init_recalloc(stack->data + stack->size + 1, (size_t)(stack->capacity - stack->size));
+        initial_with_poisons(stack->data + OffsetToLastElement(stack->size, cnt_canaries), (size_t)(stack->capacity - stack->size));
 
-        *(stack->data + stack->capacity + 1) = canary;
+        // TODO: extract setting canary to another function, in general extract all things related to canaries
+        //*(stack->data + stack->capacity + 1) = (type_t)canary;
+        ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
     }
 
-    *(stack->data + stack->size + 1) = new_value;
-    stack->size = stack->size + 1;
+    *(stack->data + OffsetToLastElement(stack->size, cnt_canaries)) = new_value;
+    stack->size++;
 
-    ON_DEBUG(code_error = StackVerify(stack);)
-
-    if (code_error != SUCCESS) {
-        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-        return code_error;
-    }
+    PROPAGATE_ERROR(StackVerify(stack));
 
     return code_error;
 }
 
-type_error_t StackPop(stack_t* stack, type_t* delete_value) {
+type_error_t StackPeek(stack_t* stack, type_t* peek_element) {
     type_error_t code_error = SUCCESS;
 
-    ON_DEBUG(code_error = StackVerify(stack);)
+    PROPAGATE_ERROR(StackVerify(stack));
 
-    if (code_error != SUCCESS) {
-        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
+    *peek_element = *(stack->data + OffsetToLastElement(stack->size, cnt_canaries));
 
-        return code_error;
-    }
+    PROPAGATE_ERROR(StackVerify(stack));
+
+    return code_error;
+}
+
+type_error_t StackPop(stack_t* stack, type_t* deleted_value) { // TODO: delete_value rename
+    // TODO: asserts
+    // TODO: StackPeek - look at the top of the stack
+    // TODO: allow passing delete_value == NULL
+    type_error_t code_error = SUCCESS;
+
+    PROPAGATE_ERROR(StackVerify(stack));
 
     if (stack->size == 0) {
-        code_error = code_error | POP_EMPTY_STACK;
-
-        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-        return code_error;
+        PROPAGATE_ERROR(POP_EMPTY_STACK);
     }
 
     stack->size--;
 
-    *delete_value = *(stack->data + stack->size + 1);
+    if (deleted_value) {
+        StackPeek(stack, deleted_value);
+    }
 
-    *(stack->data + stack->size + 1) = poison;
+    *(stack->data + OffsetToLastElement(stack->size, cnt_canaries)) = my_poison;
 
-    if (stack->size * 4 < stack->capacity) {
-        stack->data = (type_t*)my_recalloc(stack->data, (size_t)(stack->capacity / 2 + 2) * sizeof(type_t), (size_t)(stack->capacity + 2) * sizeof(type_t));
+    if (stack->size * (realloc_coeff * realloc_coeff) < stack->capacity) {
+        ssize_t temp_capacity = stack->capacity;
+        stack->capacity /= realloc_coeff;
 
-        if (stack->data == NULL) {
-            code_error = code_error | RECALLOC_ERROR;
+        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, cnt_canaries) * sizeof(type_t), 
+                                                              RealSizeStack(temp_capacity, cnt_canaries) * sizeof(type_t));
 
-            ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-            return code_error;
+        if (temp_data == NULL) {
+            PROPAGATE_ERROR(NOT_ENOUGH_MEMORY, free(temp_data););
         }
 
-        stack->capacity = stack->capacity / 2;
+        stack->data = temp_data;
 
-        *(stack->data + stack->capacity + 1) = canary;
+        // TODO: extract setting canary to another function, in general extract all things related to canaries
+        //*(stack->data + stack->capacity + 1) = (type_t)canary;
+        ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
 
         ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %ld %ld\n", stack->size, stack->capacity);)
     }
 
-    ON_DEBUG(code_error = StackVerify(stack);)
+    ON_DEBUG(stack->first_elem = 5;)
 
-    if (code_error != SUCCESS) {
-        ON_DEBUG(StackDump(stack, __LINE__, __FILE__, __func__, code_error);)
-
-        return code_error;
-    }
+    PROPAGATE_ERROR(StackVerify(stack));
 
     return code_error;
 }
