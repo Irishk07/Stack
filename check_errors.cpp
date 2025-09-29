@@ -76,8 +76,7 @@ void StackDump(stack_t* stack, type_error_t code_error, int line, const char* fu
         else                  fprintf(stderr, "    *[%zu] = %d\n", i, *(stack->data + RealIndex(i, CNT_CANARIES)));
     }
 
-    ON_CANARY(fprintf(stderr, "    +[%zu] = %d (%s)\n", 
-             OffsetToNewElement(stack->capacity, CNT_CANARIES), *(stack->data + OffsetToNewElement(stack->capacity, CNT_CANARIES)), "CANARY"));
+    ON_CANARY(fprintf(stderr, "    +[%d] = %d (%s)\n", -1, *(stack->data + OffsetToNewElement(stack->capacity, CNT_CANARIES)), "CANARY"));
 
     fprintf(stderr, "   }\n}\n\n");
 }
