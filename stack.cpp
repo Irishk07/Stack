@@ -27,7 +27,7 @@ type_error_t StackCtor(stack_t* stack, size_t start_capacity) { // TODO: test st
 
     type_error_t code_error = SUCCESS;
 
-    ON_DEBUG(
+    ON_CANARY(
         stack->first_elem = CANARY;
         stack->last_elem = CANARY;
     )
@@ -42,10 +42,9 @@ type_error_t StackCtor(stack_t* stack, size_t start_capacity) { // TODO: test st
 
     init_with_poisons(stack->data + OffsetDueCanaries(CNT_CANARIES), (size_t)stack->capacity);
 
-    ON_DEBUG(SettingCanariesToBegin(stack->data);)
-    ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
+    ON_CANARY(SettingCanariesToBegin(stack->data));
+    ON_CANARY(SettingCanariesToEnd(stack->data, stack->capacity));
 
-    // FIXME ON_DEBUG need? (stackverify and stackdump)
     code_error |= StackVerify(stack); // TODO verify macro with Success status on NO DEBUG
     PROPAGATE_ERROR(code_error, free(stack->data));
 

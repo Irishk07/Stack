@@ -28,13 +28,13 @@ type_error_t StackVerify(stack_t* stack) {
                     *(stack->data + i) != DEFAULT_POISON)                                       code_error |= STACK_OVERFLOW;
         }
 
-        ON_DEBUG(
+        ON_CANARY(
         if ((*(stack->data) != CANARY) || 
             (*(stack->data + OffsetToLastElement(stack->capacity, CNT_CANARIES)) != CANARY))    code_error |= CORRUPTED_CANARY;
         )
     }
 
-    ON_DEBUG(
+    ON_CANARY(
     if ((stack->first_elem != CANARY) ||
         (stack->last_elem  != CANARY))                                                          code_error |= CORRUPTED_CANARY;
     )                                               
@@ -52,7 +52,7 @@ void StackPrintError(type_error_t code_error) {
     if (code_error & NOT_ENOUGH_MEMORY)         fprintf(stderr, "Error is: problems with allocation memory\n");
     if (code_error & POP_EMPTY_STACK)           fprintf(stderr, "Error is: try to pop empty stack\n");
     if (code_error & STACK_DATA_IS_POISON)      fprintf(stderr, "Error is: stack data is poison\n");
-    if (code_error & STACK_OVERFLOW)            fprintf(stderr, "Error is: corrupted free part of stack\n");
+    if (code_error & STACK_OVERFLOW)            fprintf(stderr, "Error is: stack overflow\n");
     if (code_error & CORRUPTED_CANARY)          fprintf(stderr, "Error is: canary is corrupted\n");
 }
 
@@ -69,14 +69,14 @@ void StackDump(stack_t* stack, type_error_t code_error, int line, const char* fu
     fprintf(stderr, "    %s = %zu\n", "size", stack->size);
     fprintf(stderr, "    %s[%zu] = [%p] {\n", "data", stack->capacity, &(stack->data));
 
-    ON_DEBUG(fprintf(stderr, "    +[%d] = %d (%s)\n", 0, *(stack->data), "CANARY"));
+    ON_CANARY(fprintf(stderr, "    +[%d] = %d (%s)\n", 0, *(stack->data), "CANARY"));
     
     for (size_t i = OffsetDueCanaries(CNT_CANARIES); i < stack->capacity + OffsetDueCanaries(CNT_CANARIES); ++i) {
         if (i >= stack->size + OffsetDueCanaries(CNT_CANARIES)) fprintf(stderr, "     [%zu] = %d (%s)\n", i, *(stack->data + i), "POISON"); // TODO make func for index
         else                                                    fprintf(stderr, "    *[%zu] = %d\n", i, *(stack->data + i));
     }
 
-    ON_DEBUG(fprintf(stderr, "    +[%zu] = %d (%s)\n", 
+    ON_CANARY(fprintf(stderr, "    +[%zu] = %d (%s)\n", 
              OffsetToLastElement(stack->capacity, CNT_CANARIES), *(stack->data + OffsetToLastElement(stack->capacity, CNT_CANARIES)), "CANARY"));
 
     fprintf(stderr, "   }\n}\n\n");

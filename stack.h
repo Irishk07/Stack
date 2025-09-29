@@ -33,12 +33,12 @@ const int DEFAULT_POISON = 0XDED;
 
 
 struct stack_t {
-    ON_DEBUG(int first_elem);
+    ON_CANARY(int first_elem);
     type_t* data = NULL;
     size_t size = 0;
     size_t capacity = 0;
     ON_DEBUG(debug_info_t debug_info);
-    ON_DEBUG(int last_elem);
+    ON_CANARY(int last_elem);
 };
 
 

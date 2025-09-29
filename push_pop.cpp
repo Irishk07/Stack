@@ -34,7 +34,7 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
 
         init_with_poisons(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES), stack->capacity - stack->size);
 
-        ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
+        ON_CANARY(SettingCanariesToEnd(stack->data, stack->capacity));
     }
 
     *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = new_value;
@@ -66,11 +66,11 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
         PROPAGATE_ERROR(POP_EMPTY_STACK);
     }
 
-    stack->size--;
-
     if (deleted_value) {
         StackPeek(stack, deleted_value);
     }
+
+    stack->size--;
 
     *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = DEFAULT_POISON;
 
@@ -87,7 +87,7 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
 
         stack->data = temp_data;
 
-        ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
+        ON_CANARY(SettingCanariesToEnd(stack->data, stack->capacity);)
 
         ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %zu %zu\n", stack->size, stack->capacity);)
     }

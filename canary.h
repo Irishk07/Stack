@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 
+#include "debug.h"
 #include "stack.h"
 
-#ifdef DEBUG
+#ifdef CANARIES
 const size_t CNT_CANARIES = 2;
 #else
 const size_t CNT_CANARIES = 0;
-#endif //DEBUG
+#endif //CANARIES
 
 
 const int CANARY = 0XEDA; // TODO: what if type_t is not an integer type?
