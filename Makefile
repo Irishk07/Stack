@@ -21,7 +21,7 @@ HEADER_DEPENDS := $(CPPOBJ:%.o=%.d)
 .PHONY: all
 all: prog
 
-$(CPPOBJ): build/%.o: %.cpp
+$(CPPOBJ): build/%.o: %.cpp Makefile
 	@$(CXX) $(CPPFLAGS) -MP -MMD -c $< -o $@
 
 prog: $(CPPOBJ) 
