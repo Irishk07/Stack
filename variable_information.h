@@ -6,15 +6,14 @@
 #define DUMP_VAR_INFO __LINE__, __func__, __FILE__
 
 #ifdef DEBUG
-#define PRINT_DUMP_VAR_INFO(stack) fprintf(stderr, "\"%s\" %s() %s:%d {",                               \
-                                           stack->now_var_info.name, stack->now_var_info.function_name, \
-                                           stack->now_var_info.file_name, stack->now_var_info.line);
+#define PRINT_DUMP_DEBUG_INFO(stack) fprintf(stderr, "\"%s\" %s() %s:%d {",                         \
+                                           stack->debug_info.name, stack->debug_info.function_name, \
+                                           stack->debug_info.file_name, stack->debug_info.line);
 #else
-#define PRINT_DUMP_VAR_INFO(stack)
+#define PRINT_DUMP_DEBUG_INFO(stack)
 #endif //DEBUG
 
-
-struct var_info { // TODO: naming 
+struct debug_info_t {
     const char* name;
     int line;
     const char* function_name;
