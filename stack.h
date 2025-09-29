@@ -11,7 +11,7 @@
 #define STACK_CREATE(stack, start_capacity) StackCtorDebug(&stack, start_capacity, {#stack, __LINE__, __func__, __FILE__})
 #else // NOT DEBUG
 #define STACK_CREATE(stack, start_capacity) StackCtor(&stack, start_capacity)
-#endif //DEBUG
+#endif // DEBUG
 
 #define PROPAGATE_ERROR(error, ...)                                \
         if (error != SUCCESS) {                                    \
@@ -62,6 +62,10 @@ size_t RealSizeStack(size_t capacity, size_t cout_canaries);
 size_t OffsetDueCanaries(size_t count_canaries);
 
 size_t OffsetToLastElement(size_t size, size_t count_canaries);
+
+size_t OffsetToNewElement(size_t size, size_t count_canaries);
+
+size_t RealIndex(size_t index, size_t count_canaries);
 
 type_error_t StackCtor(stack_t* stack, size_t start_capacity);
 

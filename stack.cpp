@@ -18,19 +18,26 @@ size_t OffsetDueCanaries(size_t count_canaries) {
 }
 
 size_t OffsetToLastElement(size_t size, size_t count_canaries) {
-    return OffsetDueCanaries(count_canaries) + size;
+    return size + OffsetDueCanaries(count_canaries) - 1;
+}
+
+size_t OffsetToNewElement(size_t size, size_t count_canaries) {
+    return size + OffsetDueCanaries(count_canaries);
+}
+
+size_t RealIndex(size_t index, size_t count_canaries) {
+    return index + OffsetDueCanaries(count_canaries);
 }
 
 type_error_t StackCtor(stack_t* stack, size_t start_capacity) { // TODO: test stack with other types than int
     assert(stack);
     assert(start_capacity > 0);
 
-    type_error_t code_error = SUCCESS;
-
     ON_CANARY(
         stack->first_elem = CANARY;
         stack->last_elem = CANARY;
     )
+
     stack->capacity = start_capacity;
     stack->size = 0;
 
@@ -45,7 +52,7 @@ type_error_t StackCtor(stack_t* stack, size_t start_capacity) { // TODO: test st
     ON_CANARY(SettingCanariesToBegin(stack->data));
     ON_CANARY(SettingCanariesToEnd(stack->data, stack->capacity));
 
-    code_error |= StackVerify(stack); // TODO verify macro with Success status on NO DEBUG
+    type_error_t code_error = VERIFY(stack);
     PROPAGATE_ERROR(code_error, free(stack->data));
 
     return code_error;
@@ -55,20 +62,18 @@ ON_DEBUG(
 type_error_t StackCtorDebug(stack_t* stack, size_t start_capacity, debug_info_t my_var_info) {
     type_error_t code_error = StackCtor(stack, start_capacity);
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     stack->debug_info = my_var_info;
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     return code_error;
 }
 )
 
 type_error_t StackDtor(stack_t* stack) {
-    type_error_t code_error = SUCCESS;
-
-    ON_DEBUG(code_error = StackVerify(stack);)
+    type_error_t code_error = VERIFY(stack);
 
     free(stack->data);
     
