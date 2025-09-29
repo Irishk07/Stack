@@ -9,63 +9,56 @@
 #include "variable_information.h"
 
 
-size_t RealSizeStack(ssize_t capacity, ssize_t count_canaries) {
-    return (size_t)(capacity + count_canaries);
-}
+size_t RealSizeStack(size_t capacity, size_t count_canaries) {
+    return (capacity + count_canaries);
+} 
 
-int OffsetDueCanaries(ssize_t count_canaries){
+size_t OffsetDueCanaries(size_t count_canaries) {
     return (count_canaries == 0) ? 0 : 1;
 }
 
-int OffsetToLastElement(ssize_t size, ssize_t count_canaries) {
-    return (count_canaries == 0) ? (int)size : (int)size + 1;
+size_t OffsetToLastElement(size_t size, size_t count_canaries) {
+    return OffsetDueCanaries(count_canaries) + size;
 }
 
-type_error_t StackCtor(stack_t* stack, ssize_t start_capacity) { // TODO: test stack with other types than int
+type_error_t StackCtor(stack_t* stack, size_t start_capacity) { // TODO: test stack with other types than int
     assert(stack);
-    // TODO: any start_capacity possible?
+    assert(start_capacity > 0);
 
     type_error_t code_error = SUCCESS;
 
     ON_DEBUG(
-        stack->first_elem = canary;
-        stack->last_elem = canary;
+        stack->first_elem = CANARY;
+        stack->last_elem = CANARY;
     )
     stack->capacity = start_capacity;
     stack->size = 0;
 
-    stack->data = (type_t*)calloc(RealSizeStack(stack->capacity, cnt_canaries), sizeof(type_t)); // TODO: why 2?
+    stack->data = (type_t*)calloc(RealSizeStack(stack->capacity, CNT_CANARIES), sizeof(type_t));
 
-    // TODO: test what happens if calloc fails?
     if (stack->data == NULL) {
         PROPAGATE_ERROR(NOT_ENOUGH_MEMORY);
     }
 
-    initial_with_poisons(stack->data + OffsetDueCanaries(cnt_canaries), (size_t)stack->capacity);
+    init_with_poisons(stack->data + OffsetDueCanaries(CNT_CANARIES), (size_t)stack->capacity);
 
-    // TODO: extract setting canary to another function, in general extract all things related to canaries
-    // *(stack->data) = (type_t)canary;
     ON_DEBUG(SettingCanariesToBegin(stack->data);)
-    // *(stack->data + stack->capacity + 1) = (type_t)canary;
     ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
 
-    // NOTE: You can make a macro "PROPAGATE_ERROR(error)"
-    // NOTE: E.g. PROPAGATE_ERROR(StackVerify()); // if (error) return error;
-
     // FIXME ON_DEBUG need? (stackverify and stackdump)
-    code_error |= StackVerify(stack);
-    PROPAGATE_ERROR(code_error, free(stack->data););
+    code_error |= StackVerify(stack); // TODO verify macro with Success status on NO DEBUG
+    PROPAGATE_ERROR(code_error, free(stack->data));
 
     return code_error;
 }
 
 ON_DEBUG(
-type_error_t StackFillVarInfo(stack_t* stack, var_info my_var_info) {
-    type_error_t code_error = SUCCESS;
+type_error_t StackCtorDebug(stack_t* stack, size_t start_capacity, debug_info_t my_var_info) {
+    type_error_t code_error = StackCtor(stack, start_capacity);
 
     PROPAGATE_ERROR(StackVerify(stack));
 
-    stack->now_var_info = my_var_info;
+    stack->debug_info = my_var_info;
 
     PROPAGATE_ERROR(StackVerify(stack));
 
@@ -73,7 +66,17 @@ type_error_t StackFillVarInfo(stack_t* stack, var_info my_var_info) {
 }
 )
 
+type_error_t StackDtor(stack_t* stack) {
+    type_error_t code_error = SUCCESS;
 
+    ON_DEBUG(code_error = StackVerify(stack);)
+
+    free(stack->data);
+    
+    *stack = {};
+
+    return code_error;
+}
 
 // NOTE: example of error managment in C
 // NOTE: PROPAGATE_ERROR(string[0], free_string0)
@@ -114,7 +117,7 @@ type_error_t StackFillVarInfo(stack_t* stack, var_info my_var_info) {
 
 
 
-// TODO: look how beautiful can it be
+// look how beautiful can it be
 // int foo() {
 //     void *string[4] = {};
 //
@@ -130,16 +133,3 @@ type_error_t StackFillVarInfo(stack_t* stack, var_info my_var_info) {
 //
 //     return 41;
 // }
-
-
-type_error_t StackDtor(stack_t* stack) {
-    type_error_t code_error = SUCCESS;
-
-    ON_DEBUG(code_error = StackVerify(stack);)
-
-    free(stack->data);
-    
-    *stack = {};
-
-    return code_error;
-}
