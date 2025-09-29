@@ -20,17 +20,17 @@ type_error_t StackVerify(stack_t* stack) {
     if (stack->size > stack->capacity)                                                          code_error |= SIZE_BIGGER_THAN_CAPACITY;
 
     if (stack->data != NULL) {
-        for (size_t i = OffsetDueCanaries(CNT_CANARIES); i < stack->capacity + OffsetDueCanaries(CNT_CANARIES); ++i) {
-            if (i < stack->size + OffsetDueCanaries(CNT_CANARIES) && 
-                *(stack->data + i) == DEFAULT_POISON)                                           code_error |= STACK_DATA_IS_POISON;
+        for (size_t i = 0; i < stack->capacity; ++i) {
+            if (i < stack->size && 
+                *(stack->data + RealIndex(i, CNT_CANARIES)) == DEFAULT_POISON)                  code_error |= STACK_DATA_IS_POISON;
 
-            else if (i >= stack->size + OffsetDueCanaries(CNT_CANARIES) && 
-                    *(stack->data + i) != DEFAULT_POISON)                                       code_error |= STACK_OVERFLOW;
+            else if (i >= stack->size && 
+                *(stack->data + RealIndex(i, CNT_CANARIES)) != DEFAULT_POISON)                  code_error |= STACK_OVERFLOW;
         }
 
         ON_CANARY(
         if ((*(stack->data) != CANARY) || 
-            (*(stack->data + OffsetToLastElement(stack->capacity, CNT_CANARIES)) != CANARY))    code_error |= CORRUPTED_CANARY;
+            (*(stack->data + OffsetToNewElement(stack->capacity, CNT_CANARIES)) != CANARY))    code_error |= CORRUPTED_CANARY;
         )
     }
 
@@ -69,15 +69,15 @@ void StackDump(stack_t* stack, type_error_t code_error, int line, const char* fu
     fprintf(stderr, "    %s = %zu\n", "size", stack->size);
     fprintf(stderr, "    %s[%zu] = [%p] {\n", "data", stack->capacity, &(stack->data));
 
-    ON_CANARY(fprintf(stderr, "    +[%d] = %d (%s)\n", 0, *(stack->data), "CANARY"));
+    ON_CANARY(fprintf(stderr, "    +[%d] = %d (%s)\n", -1, *(stack->data), "CANARY"));
     
-    for (size_t i = OffsetDueCanaries(CNT_CANARIES); i < stack->capacity + OffsetDueCanaries(CNT_CANARIES); ++i) {
-        if (i >= stack->size + OffsetDueCanaries(CNT_CANARIES)) fprintf(stderr, "     [%zu] = %d (%s)\n", i, *(stack->data + i), "POISON"); // TODO make func for index
-        else                                                    fprintf(stderr, "    *[%zu] = %d\n", i, *(stack->data + i));
+    for (size_t i = 0; i < stack->capacity; ++i) {
+        if (i >= stack->size) fprintf(stderr, "     [%zu] = %d (%s)\n", i, *(stack->data + RealIndex(i, CNT_CANARIES)), "POISON");
+        else                  fprintf(stderr, "    *[%zu] = %d\n", i, *(stack->data + RealIndex(i, CNT_CANARIES)));
     }
 
     ON_CANARY(fprintf(stderr, "    +[%zu] = %d (%s)\n", 
-             OffsetToLastElement(stack->capacity, CNT_CANARIES), *(stack->data + OffsetToLastElement(stack->capacity, CNT_CANARIES)), "CANARY"));
+             OffsetToNewElement(stack->capacity, CNT_CANARIES), *(stack->data + OffsetToNewElement(stack->capacity, CNT_CANARIES)), "CANARY"));
 
     fprintf(stderr, "   }\n}\n\n");
 }
