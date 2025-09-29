@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,27 +8,33 @@
 
 
 void* my_recalloc(void* ptr, size_t new_size, size_t old_size) {
-    // TODO: asserts: size > 0, size < dofiga, ptr != NULL, ...
-    char* point = (char*)realloc(ptr, new_size);
+    assert(ptr);
+    assert(new_size > 0);
+    assert(new_size < MAX_CAPACITY);
+    assert(old_size > 0);
+    assert(old_size < MAX_CAPACITY);
 
-    if (new_size <= old_size) {
-        return point;
-    }
+    char* temp = (char*)realloc(ptr, new_size);
 
-    if (point == NULL) { // TODO: hoist
+    if (temp == NULL) {
         return NULL;
     }
 
-    memset(point + old_size, 0, new_size - old_size);
+    if (new_size <= old_size) {
+        return temp;
+    }
 
-    return point;
+    memset(temp + old_size, 0, new_size - old_size);
+
+    return temp;
 }
 
-void initial_with_poisons(type_t* ptr, size_t size) { 
-    // TODO: assert for ptr and for size?
+void init_with_poisons(type_t* ptr, size_t size) { 
+    assert(ptr);
+    assert(size > 0);
+    assert(size < MAX_CAPACITY);
+
     for (size_t i = 0; i < size; ++i) {
-        *(ptr + i) = my_poison;
+        *(ptr + i) = DEFAULT_POISON;
     }
 }
-
-// FUN NOTE: malloc + memset to fail fast? 
