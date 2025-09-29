@@ -11,18 +11,18 @@
 
 
 type_error_t StackPush(stack_t* stack, type_t new_value) {
-    // TODO: asserts?
     type_error_t code_error = SUCCESS;
 
     PROPAGATE_ERROR(StackVerify(stack));
 
     if (stack->size == stack->capacity) {
-        ssize_t temp_capacity = stack->capacity;
-        stack->capacity *= realloc_coeff;
+        // TODO: unified set_capacity method ---
 
-        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, cnt_canaries) * sizeof(type_t), 
-                                                              RealSizeStack(temp_capacity, cnt_canaries) * sizeof(type_t));
-        // TODO: stop hungarian notation!!!! it kills
+        size_t temp_capacity = stack->capacity;
+        stack->capacity *= REALLOC_COEFF;
+
+        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, CNT_CANARIES) * sizeof(type_t), 
+                                                              RealSizeStack(temp_capacity, CNT_CANARIES) * sizeof(type_t));
 
         if (temp_data == NULL) {
             PROPAGATE_ERROR(NOT_ENOUGH_MEMORY, free(temp_data););
@@ -30,16 +30,14 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
 
         stack->data = temp_data;
 
-        ON_DEBUG(fprintf(stderr, "I'm recalloc up, I do it %ld %ld\n", stack->size, stack->capacity);)
+        ON_DEBUG(fprintf(stderr, "MEOW I'm recalloc up, I do it %zu %zu\n", stack->size, stack->capacity));
 
-        initial_with_poisons(stack->data + OffsetToLastElement(stack->size, cnt_canaries), (size_t)(stack->capacity - stack->size));
+        init_with_poisons(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES), stack->capacity - stack->size);
 
-        // TODO: extract setting canary to another function, in general extract all things related to canaries
-        //*(stack->data + stack->capacity + 1) = (type_t)canary;
         ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
     }
 
-    *(stack->data + OffsetToLastElement(stack->size, cnt_canaries)) = new_value;
+    *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = new_value;
     stack->size++;
 
     PROPAGATE_ERROR(StackVerify(stack));
@@ -52,17 +50,14 @@ type_error_t StackPeek(stack_t* stack, type_t* peek_element) {
 
     PROPAGATE_ERROR(StackVerify(stack));
 
-    *peek_element = *(stack->data + OffsetToLastElement(stack->size, cnt_canaries));
+    *peek_element = *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES));
 
     PROPAGATE_ERROR(StackVerify(stack));
 
     return code_error;
 }
 
-type_error_t StackPop(stack_t* stack, type_t* deleted_value) { // TODO: delete_value rename
-    // TODO: asserts
-    // TODO: StackPeek - look at the top of the stack
-    // TODO: allow passing delete_value == NULL
+type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
     type_error_t code_error = SUCCESS;
 
     PROPAGATE_ERROR(StackVerify(stack));
@@ -77,14 +72,14 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) { // TODO: delete_v
         StackPeek(stack, deleted_value);
     }
 
-    *(stack->data + OffsetToLastElement(stack->size, cnt_canaries)) = my_poison;
+    *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = DEFAULT_POISON;
 
-    if (stack->size * (realloc_coeff * realloc_coeff) < stack->capacity) {
-        ssize_t temp_capacity = stack->capacity;
-        stack->capacity /= realloc_coeff;
+    if (stack->size * (REALLOC_COEFF * REALLOC_COEFF) < stack->capacity) {
+        size_t temp_capacity = stack->capacity;
+        stack->capacity /= REALLOC_COEFF;
 
-        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, cnt_canaries) * sizeof(type_t), 
-                                                              RealSizeStack(temp_capacity, cnt_canaries) * sizeof(type_t));
+        type_t* temp_data = (type_t*)my_recalloc(stack->data, RealSizeStack(stack->capacity, CNT_CANARIES) * sizeof(type_t), 
+                                                              RealSizeStack(temp_capacity, CNT_CANARIES) * sizeof(type_t));
 
         if (temp_data == NULL) {
             PROPAGATE_ERROR(NOT_ENOUGH_MEMORY, free(temp_data););
@@ -92,14 +87,10 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) { // TODO: delete_v
 
         stack->data = temp_data;
 
-        // TODO: extract setting canary to another function, in general extract all things related to canaries
-        //*(stack->data + stack->capacity + 1) = (type_t)canary;
         ON_DEBUG(SettingCanariesToEnd(stack->data, stack->capacity);)
 
-        ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %ld %ld\n", stack->size, stack->capacity);)
+        ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %zu %zu\n", stack->size, stack->capacity);)
     }
-
-    ON_DEBUG(stack->first_elem = 5;)
 
     PROPAGATE_ERROR(StackVerify(stack));
 
