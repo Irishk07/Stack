@@ -13,7 +13,7 @@
 type_error_t StackPush(stack_t* stack, type_t new_value) {
     type_error_t code_error = SUCCESS;
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     if (stack->size == stack->capacity) {
         // TODO: unified set_capacity method ---
@@ -37,10 +37,10 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
         ON_CANARY(SettingCanariesToEnd(stack->data, stack->capacity));
     }
 
-    *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = new_value;
+    *(stack->data + OffsetToNewElement(stack->size, CNT_CANARIES)) = new_value;
     stack->size++;
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     return code_error;
 }
@@ -48,11 +48,11 @@ type_error_t StackPush(stack_t* stack, type_t new_value) {
 type_error_t StackPeek(stack_t* stack, type_t* peek_element) {
     type_error_t code_error = SUCCESS;
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     *peek_element = *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES));
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     return code_error;
 }
@@ -60,7 +60,7 @@ type_error_t StackPeek(stack_t* stack, type_t* peek_element) {
 type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
     type_error_t code_error = SUCCESS;
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     if (stack->size == 0) {
         PROPAGATE_ERROR(POP_EMPTY_STACK);
@@ -70,9 +70,9 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
         StackPeek(stack, deleted_value);
     }
 
-    stack->size--;
-
     *(stack->data + OffsetToLastElement(stack->size, CNT_CANARIES)) = DEFAULT_POISON;
+
+    stack->size--;
 
     if (stack->size * (REALLOC_COEFF * REALLOC_COEFF) < stack->capacity) {
         size_t temp_capacity = stack->capacity;
@@ -92,7 +92,7 @@ type_error_t StackPop(stack_t* stack, type_t* deleted_value) {
         ON_DEBUG(fprintf(stderr, "I'm recalloc down, I do it %zu %zu\n", stack->size, stack->capacity);)
     }
 
-    PROPAGATE_ERROR(StackVerify(stack));
+    PROPAGATE_ERROR(VERIFY(stack));
 
     return code_error;
 }

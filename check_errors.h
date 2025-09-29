@@ -3,6 +3,12 @@
 
 #include "stack.h"
 
+#ifdef DEBUG
+#define VERIFY(stack) StackVerify(stack)
+#else // NOT DEBUG
+#define VERIFY(stack) SUCCESS
+#endif // DEBUG
+
 
 type_error_t StackVerify(stack_t* stack);
 
