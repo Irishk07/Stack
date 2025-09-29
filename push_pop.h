@@ -4,7 +4,7 @@
 #include "stack.h"
 
 
-const int realloc_coeff = 2;
+const int REALLOC_COEFF = 2;
 
 
 type_error_t StackPush(stack_t* stack, type_t new_value);
